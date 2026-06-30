@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { DummyDataSwitcher } from "@/components/DummyDataSwitcher";
+import { useTheme } from "next-themes";
 import { DashboardTour } from "@/components/dashboard/DashboardTour";
 import {
   SquaresFour, Kanban, Users, Article,
@@ -130,7 +130,6 @@ export function DashboardLayout({ children, pendingCount = 0 }: { children: Reac
           </div>
           
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
-            <DummyDataSwitcher />
             <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-full text-[11px] font-bold border border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
               <span className="whitespace-nowrap">Online</span>
