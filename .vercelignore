@@ -1,0 +1,21 @@
+# Ignore documentation and markdown files
+README.md
+*.md
+docs/
+
+# Ignore project specific PDFs
+Workflow Report Roboedu Quality Control.pdf
+Purple and Yellow Work Breakdown Structure.pdf
+*.pdf
+
+# Ignore editor and local dev files
+.vscode/
+.idea/
+*.log
+
+# Ignore git configs
+.gitignore
+.gitattributes
+
+# Ignore vercel config itself
+vercel.json
