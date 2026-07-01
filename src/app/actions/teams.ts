@@ -1,13 +1,13 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { teams } from "@/db/schema";
+import { teams, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-guard";
 
 export async function createTeam(formData: FormData) {
-  await requireRole("admin", "direktur", "manager");
+  await requireRole("admin", "direktur", "manager", "supervisor");
 
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
@@ -21,11 +21,12 @@ export async function createTeam(formData: FormData) {
 
   revalidatePath("/admin/teams");
   revalidatePath("/admin/approvals");
+  revalidatePath("/supervisor/teams");
   return { success: true };
 }
 
 export async function updateTeam(id: string, formData: FormData) {
-  await requireRole("admin", "direktur", "manager");
+  await requireRole("admin", "direktur", "manager", "supervisor");
 
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
@@ -38,14 +39,22 @@ export async function updateTeam(id: string, formData: FormData) {
   }).where(eq(teams.id, id));
 
   revalidatePath("/admin/teams");
+  revalidatePath("/supervisor/teams");
   return { success: true };
 }
 
 export async function deleteTeam(id: string) {
-  await requireRole("admin", "direktur", "manager");
+  await requireRole("admin", "direktur", "manager", "supervisor");
+
+  const members = await db.select({ id: users.id }).from(users).where(eq(users.teamId, id)).limit(1);
+  if (members[0]) {
+    throw new Error("Tim masih memiliki anggota. Pindahkan anggota terlebih dahulu sebelum menghapus tim.");
+  }
 
   await db.delete(teams).where(eq(teams.id, id));
   revalidatePath("/admin/teams");
+  revalidatePath("/admin/approvals");
+  revalidatePath("/supervisor/teams");
   return { success: true };
 }
 

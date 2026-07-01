@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { spotlights, users } from "@/db/schema";
+import { spotlights, teams, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-guard";
@@ -12,7 +12,25 @@ export async function createSpotlight(formData: FormData) {
   const session = await requireAuth();
   const user = session.user as any;
   const authorId = user.id;
-  const teamId = user.teamId || null;
+
+  if (!authorId) {
+    throw new Error("Sesi tidak valid. Silakan login ulang.");
+  }
+
+  const [author] = await db.select({ id: users.id }).from(users).where(eq(users.id, authorId)).limit(1);
+  if (!author) {
+    throw new Error("Akun tidak ditemukan di database. Silakan login ulang.");
+  }
+
+  const requestedTeamId = user.teamId;
+  let teamId: string | null = null;
+
+  // `all` adalah penanda akses global di session, bukan baris pada tabel team.
+  // Jangan simpan nilai pseudo-team ini ke kolom FK spotlight.teamId.
+  if (requestedTeamId && requestedTeamId !== "all") {
+    const [team] = await db.select({ id: teams.id }).from(teams).where(eq(teams.id, requestedTeamId)).limit(1);
+    teamId = team?.id ?? null;
+  }
 
   const title = formData.get("title") as string;
   const subtitle = formData.get("subtitle") as string;
