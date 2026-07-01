@@ -35,6 +35,8 @@ export function DashboardLayout({ children, pendingCount = 0 }: { children: Reac
   if (isSupervisor) {
     navItems.push(
       { name: "Supervisor Hub", href: "/supervisor", icon: ShieldCheck, color: "from-emerald-400 to-teal-500", badge: pendingCount },
+      { name: "Approvals User", href: "/admin/approvals", icon: Users, color: "from-emerald-400 to-green-500" },
+      { name: "Manajemen Tim", href: "/admin/teams", icon: Kanban, color: "from-indigo-400 to-violet-500" },
       { name: "Laporan & Statistik", href: "/supervisor/reports", icon: Article, color: "from-rose-400 to-red-500" }
     );
   }

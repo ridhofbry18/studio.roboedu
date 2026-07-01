@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users } from "@/db/schema";
+import { teams, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-guard";
@@ -42,10 +42,20 @@ export async function registerUser(formData: FormData) {
 }
 
 export async function approveUser(userId: string, role: string, teamId: string | null) {
-  await requireRole("admin", "direktur", "manager");
+  await requireRole("admin", "direktur", "manager", "supervisor");
 
   const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!user[0]) throw new Error("Pengguna tidak ditemukan.");
+  if (user[0].status !== "pending") throw new Error("Pengguna ini tidak berada dalam antrean approval.");
+
+  if (role !== "admin" && role !== "supervisor" && role !== "anggota") {
+    throw new Error("Role tidak valid.");
+  }
+
+  if (teamId) {
+    const team = await db.select({ id: teams.id }).from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (!team[0]) throw new Error("Tim yang dipilih tidak ditemukan.");
+  }
 
   await db.update(users).set({
     status: "active",
@@ -54,12 +64,14 @@ export async function approveUser(userId: string, role: string, teamId: string |
   }).where(eq(users.id, userId));
 
   revalidatePath("/admin/approvals");
+  revalidatePath("/admin/teams");
+  revalidatePath("/supervisor/teams");
   revalidatePath("/admin/data");
   return { success: true };
 }
 
 export async function rejectUser(userId: string) {
-  await requireRole("admin", "direktur", "manager");
+  await requireRole("admin", "direktur", "manager", "supervisor");
 
   await db.update(users).set({
     status: "rejected",
