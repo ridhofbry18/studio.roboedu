@@ -77,10 +77,14 @@ const authConfig = {
               email: email,
               role: "admin",
               status: "active",
-              teamId: "all"
+              teamId: null
             });
-          } else if (existingUser[0].role !== "admin" || existingUser[0].status !== "active") {
-            await db.update(users).set({ role: "admin", status: "active" }).where(eq(users.email, email));
+          } else if (
+            existingUser[0].role !== "admin" ||
+            existingUser[0].status !== "active" ||
+            existingUser[0].teamId === "all"
+          ) {
+            await db.update(users).set({ role: "admin", status: "active", teamId: null }).where(eq(users.email, email));
           }
           return true;
         }
